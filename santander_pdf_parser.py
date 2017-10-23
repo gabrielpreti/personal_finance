@@ -7,7 +7,7 @@ import sys, getopt
 
 def parse_statement(rawstatement):
     splitted = re.split('\s{2,}', rawstatement)
-    date = datetime.strptime(splitted[0], '%d/%m/%Y').strftime('%m/%d/%Y')
+    date = datetime.strptime(splitted[0], '%d/%m/%Y')
     desc = splitted[1]
 
     locale.setlocale(locale.LC_ALL, 'pt_BR.UTF8')
@@ -25,7 +25,7 @@ def parse_pdf(input, output=sys.stdout):
         if re.match('^[0-9]{2}/[0-9]{2}/[0-9]{4}.+', r):
             print(parse_statement(r))
             frame.loc[len(frame)] = parse_statement(r)
-    frame.to_csv(path_or_buf=output, sep=';', columns=('Data', 'Valor', 'Descrição'), header=True, index=False)
+    frame.to_excel(excel_writer=pd.ExcelWriter(output, engine='xlsxwriter', datetime_format='mm/dd/yyyy'), columns=('Data', 'Valor', 'Descrição'), header=True, index=False)
 
 if __name__ == "__main__":
     argv = sys.argv[1:]
@@ -52,4 +52,4 @@ if __name__ == "__main__":
     print('%s - %s' % (inputfile, outputfile))
     parse_pdf(inputfile, outputfile)
 else:
-    parse_pdf('/tmp/santander_cartao.pdf')
+    parse_pdf('/tmp/santander_cartao.pdf', '/tmp/santander_cartao.xlsx')
