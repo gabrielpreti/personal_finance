@@ -27,6 +27,33 @@ def parse_pdf(input, output=sys.stdout):
             frame.loc[len(frame)] = parse_statement(r)
     frame.to_excel(excel_writer=pd.ExcelWriter(output, engine='xlsxwriter', datetime_format='mm/dd/yyyy'), columns=('Data', 'Valor', 'Descrição'), header=True, index=False)
 
+def parse_html(input_file, output=sys.stdout):
+    table_body_regex = re.compile('.*?<div.+class=\"tabla_datos\".*?>.*?<table>.*<tbody>(.*?)</tbody>', re.DOTALL)
+    table_line_regex = re.compile(
+        '<tr>.*?<td>(.*?)</td>.*?<td>(.*?)</td>.*?<td>.*?&nbsp;.*?</td>.*?<td.*?>.*?<p.*?>(.*?)</p>', re.DOTALL)
+    DEBITO_AUTOMATICO_DESCRIPTION = 'DEB. AUTOM. DE FATURA EM C/C'
+    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF8')
+
+    frame = pd.DataFrame(columns=('Data', 'Valor', 'Descrição'))
+    with open(file=input_file, mode='r', encoding='utf8') as html:
+        html_content = html.read()
+        table_body = table_body_regex.match(html_content).group(0)
+        lines = table_line_regex.findall(table_body)
+        for (date, description, value) in lines:
+            if description.strip() == DEBITO_AUTOMATICO_DESCRIPTION:
+                continue
+            date = datetime.strptime(date.strip(), '%d/%m/%Y')
+            description = description.strip()
+            value = locale.atof(value.replace('R$', '').strip())
+
+            frame.loc[len(frame)] = (date, value, description)
+
+    print(frame)
+    frame.to_excel(excel_writer=pd.ExcelWriter(output, engine='xlsxwriter', datetime_format='mm/dd/yyyy'),
+                   columns=('Data', 'Valor', 'Descrição'), header=True, index=False)
+
+
+
 if __name__ == "__main__":
     argv = sys.argv[1:]
     print(argv)
@@ -49,7 +76,9 @@ if __name__ == "__main__":
         elif opt in ("-o", "--ofile"):
             outputfile = arg
 
-    print('%s - %s' % (inputfile, outputfile))
-    parse_pdf(inputfile, outputfile)
+    if inputfile.endswith('pdf'):
+        parse_pdf(inputfile, outputfile)
+    else:
+        parse_html(inputfile, outputfile)
 else:
-    parse_pdf('/tmp/santander_cartao.pdf', '/tmp/santander_cartao.xlsx')
+    parse_html('/tmp/cartao_santander.html', '/tmp/santander_cartao.xlsx')
