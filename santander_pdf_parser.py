@@ -42,6 +42,10 @@ def parse_html(input_file, output=sys.stdout):
         for (date, description, value) in lines:
             if description.strip() == DEBITO_AUTOMATICO_DESCRIPTION:
                 continue
+            if not date.strip() or not description.strip() or not value.strip():
+                print("Warning: ignoring line date='%s' description='%s' value='%s'" % (date.strip(), description.strip(), value.strip()))
+                continue
+
             date = datetime.strptime(date.strip(), '%d/%m/%Y')
             description = description.strip()
             value = locale.atof(value.replace('R$', '').strip())
