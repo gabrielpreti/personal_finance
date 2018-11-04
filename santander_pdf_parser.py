@@ -25,7 +25,10 @@ def parse_pdf(input, output=sys.stdout):
         if re.match('^[0-9]{2}/[0-9]{2}/[0-9]{4}.+', r):
             print(parse_statement(r))
             frame.loc[len(frame)] = parse_statement(r)
-    frame.to_excel(excel_writer=pd.ExcelWriter(output, engine='xlsxwriter', datetime_format='mm/dd/yyyy'), columns=('Data', 'Valor', 'Descrição'), header=True, index=False)
+
+    excel_writer = pd.ExcelWriter(path=output, engine='xlsxwriter', datetime_format='mm/dd/yyyy')
+    frame.to_excel(excel_writer, columns=('Data', 'Valor', 'Descrição'), header=True, index=False)
+    excel_writer.save()
 
 def parse_html(input_file, output=sys.stdout):
     table_body_regex = re.compile('.*?<div.+class=\"tabla_datos\".*?>.*?<table>.*<tbody>(.*?)</tbody>', re.DOTALL)
@@ -85,4 +88,5 @@ if __name__ == "__main__":
     else:
         parse_html(inputfile, outputfile)
 else:
-    parse_html('/tmp/cartao_santander.html', '/tmp/santander_cartao.xlsx')
+    #parse_html('/tmp/cartao_santander.html', '/tmp/santander_cartao.xlsx')
+    parse_pdf('/tmp/cartao_santander.pdf', '/tmp/cartao_santander.xlsx')
