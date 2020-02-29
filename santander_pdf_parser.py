@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import subprocess
 import re
 from datetime import datetime
@@ -10,13 +12,13 @@ def parse_statement(rawstatement):
     date = datetime.strptime(splitted[0], '%d/%m/%Y')
     desc = splitted[1]
 
-    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF8')
+    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
     value = locale.atof(splitted[3].replace('R$', '').strip())
 
     return date, value, desc
 
 def parse_pdf(input, output=sys.stdout):
-    result = subprocess.run(['pdftotext', '-layout', input, '/dev/stdout', ], stdout=subprocess.PIPE)
+    result = subprocess.run(['pdftotext', '-layout', '-enc',  'UTF-8', input, '/dev/stdout', ], stdout=subprocess.PIPE)
     result = result.stdout.decode()
     results = re.compile('\n+').split(result)
 
@@ -35,7 +37,7 @@ def parse_html(input_file, output=sys.stdout):
     table_line_regex = re.compile(
         '<tr>.*?<td>(.*?)</td>.*?<td>(.*?)</td>.*?<td>.*?&nbsp;.*?</td>.*?<td.*?>.*?<p.*?>(.*?)</p>', re.DOTALL)
     DEBITO_AUTOMATICO_DESCRIPTION = 'DEB. AUTOM. DE FATURA EM C/C'
-    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF8')
+    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
     frame = pd.DataFrame(columns=('Data', 'Valor', 'Descrição'))
     with open(file=input_file, mode='r', encoding='utf8') as html:
